@@ -5,7 +5,11 @@ function resolvent  = CS4300_PL_RESOLVE(Ci, Cj)
          e = find(resolvent == -i, 1);
          if ~isempty(e)
              time = time+1;
-             resolvent(e) = [];
+             if time == 1
+                 resolvent(e) = [];
+                 Cj(Cj == i) =[];
+                 resolvent = [resolvent,Cj];
+             end         
          end
      end
      if time >1 && time == 0

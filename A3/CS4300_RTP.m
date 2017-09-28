@@ -33,9 +33,14 @@ newSpace = [];
 resolvents = [];
 gate = 0;
 
+
+
 while gate == 0
     if isempty(newSpace)
         len = length(CNF);
+        for i = 1:len
+            CNF(i).clauses = sort(CNF(i).clause);
+        end
         for  i = 1: len
             if i < len 
                 for j = (i+1):length(CNF)
@@ -45,25 +50,124 @@ while gate == 0
                              Sip =[];
                              return 
                          else
-                             resolvents(end+1).clauses = current;
+                             add = 1;
+                             current = sort(current);
+                             lenCur = length(current);
+                             if isempty(resolvents)
+                                 resolvents(end+1).clauses = sort(current);
+                             else
+                                 for n =1:length(resolvents)
+                                     if length(resolvents(n).clauses) == lenCur
+                                         if isequal(current,n)
+                                             add = 0;
+                                         end
+                                     end
+                                 end
+                                 if add
+                                     resolvents(end+1).clauses = sort(current);
+                                 end  
+                             end                            
                          end
                      end
                 end
             end
         end
-        
-        
+        for i =1: len
+            for n = 1:length(resolvents)
+                if length(resolvents(n).clauses) == length(CNF(i),clauses)
+                    if isequal(resolvents(n).clauses, CNF(i).clauses)
+                        resolvents(n) = [];
+                    end
+                end
+            end
+        end
+        if isempty(resolvents)
+            return;
+        else
+            newSpace = resolvents;
+            resolvents =[];
+        end
     else
-        
-        
-        
+        % new-new, new- CNF
+        resolvents = [];
+        len = length(newSpace);
+        for  i = 1: len
+            if i < len 
+                for j = (i+1):len
+                     current= CS4300_PL_RESOLVE(newSpace(i).clauses,newSpace(j).clauses);
+                     if current ~= 0
+                         if isempty(current)
+                             Sip =[];
+                             return 
+                         else
+                             add = 1;
+                             current = sort(current);
+                             lenCur = length(current);
+                             if isempty(resolvents)
+                                 resolvents(end+1).clauses = sort(current);
+                             else
+                                 for n =1:length(resolvents)
+                                     if length(resolvents(n).clauses) == lenCur
+                                         if isequal(current,n)
+                                             add = 0;
+                                         end
+                                     end
+                                 end
+                                 if add
+                                     resolvents(end+1).clauses = sort(current);
+                                 end  
+                             end                            
+                         end
+                     end
+                end
+            end
+            for j = 1:length(CNF)
+                 current= CS4300_PL_RESOLVE(newSpace(i).clauses,CNF(j).clauses);
+                 if current ~= 0
+                     if isempty(current)
+                         Sip =[];
+                         return 
+                     else
+                         add = 1;
+                         current = sort(current);
+                         lenCur = length(current);
+                         if isempty(resolvents)
+                             resolvents(end+1).clauses = sort(current);
+                         else
+                             for n =1:length(resolvents)
+                                 if length(resolvents(n).clauses) == lenCur
+                                     if isequal(current,n)
+                                         add = 0;
+                                     end
+                                 end
+                             end
+                             if add
+                                 resolvents(end+1).clauses = sort(current);
+                             end  
+                         end                            
+                     end
+                 end
+            end
+        end
+        CNF = [CNF newSpace];
+        lenCNF = length(CNF);
+        for i =1: lenCNF
+            for n = 1:length(resolvents)
+                if length(resolvents(n).clauses) == length(CNF(i),clauses)
+                    if isequal(resolvents(n).clauses, CNF(i).clauses)
+                        resolvents(n) = [];
+                    end
+                end
+            end
+        end
+        if isempty(resolvents)
+            return;
+        else
+            newSpace = resolvents;
+            resolvents =[];
+        end
         
     end
-    
-    
-    
-    
-    
     
 end
 
