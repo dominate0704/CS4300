@@ -39,13 +39,17 @@ while gate == 0
     if isempty(newSpace)
         len = length(CNF);
         for i = 1:len
-            CNF(i).clauses = sort(CNF(i).clause);
+            CNF(i).clauses = sort(CNF(i).clauses);
         end
         for  i = 1: len
             if i < len 
                 for j = (i+1):length(CNF)
                      current= CS4300_PL_RESOLVE(CNF(i).clauses,CNF(j).clauses);
-                     if current ~= 0
+                     if isempty(current)
+                        Sip =[];
+                        return;
+                     end
+                     if current ~= -100
                          if isempty(current)
                              Sip =[];
                              return 
@@ -58,7 +62,7 @@ while gate == 0
                              else
                                  for n =1:length(resolvents)
                                      if length(resolvents(n).clauses) == lenCur
-                                         if isequal(current,n)
+                                         if isequal(current,resolvents(n).clauses)
                                              add = 0;
                                          end
                                      end
@@ -73,10 +77,13 @@ while gate == 0
             end
         end
         for i =1: len
-            for n = 1:length(resolvents)
-                if length(resolvents(n).clauses) == length(CNF(i),clauses)
-                    if isequal(resolvents(n).clauses, CNF(i).clauses)
-                        resolvents(n) = [];
+            if isempty(resolvents)
+                return;
+            end
+            for n = resolvents
+                if length(n.clauses) == length(CNF(i).clauses)
+                    if isequal(n.clauses, CNF(i).clauses)
+                        n = [];        
                     end
                 end
             end
@@ -95,10 +102,14 @@ while gate == 0
             if i < len 
                 for j = (i+1):len
                      current= CS4300_PL_RESOLVE(newSpace(i).clauses,newSpace(j).clauses);
-                     if current ~= 0
+                     if isempty(current)
+                        Sip =[];
+                        return;
+                     end
+                     if current ~= -100
                          if isempty(current)
                              Sip =[];
-                             return 
+                             return; 
                          else
                              add = 1;
                              current = sort(current);
@@ -123,7 +134,11 @@ while gate == 0
             end
             for j = 1:length(CNF)
                  current= CS4300_PL_RESOLVE(newSpace(i).clauses,CNF(j).clauses);
-                 if current ~= 0
+                 if isempty(current)
+                         Sip =[];
+                         return 
+                 end
+                 if current ~= -100
                      if isempty(current)
                          Sip =[];
                          return 
@@ -136,7 +151,7 @@ while gate == 0
                          else
                              for n =1:length(resolvents)
                                  if length(resolvents(n).clauses) == lenCur
-                                     if isequal(current,n)
+                                     if isequal(current,resolvents(n).clauses)
                                          add = 0;
                                      end
                                  end
@@ -152,10 +167,13 @@ while gate == 0
         CNF = [CNF newSpace];
         lenCNF = length(CNF);
         for i =1: lenCNF
-            for n = 1:length(resolvents)
-                if length(resolvents(n).clauses) == length(CNF(i),clauses)
-                    if isequal(resolvents(n).clauses, CNF(i).clauses)
-                        resolvents(n) = [];
+            if isempty(resolvents)
+                return;
+            end
+            for n = resolvents
+                if length(n.clauses) == length(CNF(i).clauses)
+                    if isequal(n.clauses, CNF(i).clauses)
+                        n = [];
                     end
                 end
             end
@@ -165,10 +183,7 @@ while gate == 0
         else
             newSpace = resolvents;
             resolvents =[];
-        end
-        
-    end
-    
+        end 
+    end  
 end
-
 end

@@ -12,8 +12,8 @@ function resolvent  = CS4300_PL_RESOLVE(Ci, Cj)
              end         
          end
      end
-     if time >1 && time == 0
-         resolvent = 0;
+     if time >1 || time == 0
+         resolvent = -100;
          return ;
      end
 end
