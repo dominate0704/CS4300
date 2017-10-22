@@ -25,6 +25,11 @@ function Sip = CS4300_RTP(sentences,thm,vars)
 % Let i be increased by 1.
 % ENDLOOP.
 % Output Sn+1.
+% Pit: 1-16
+% Glitter: 17-32
+% Breeze: 33-48
+% Stench: 49-64
+% Wempus 65-80
 % Call:  (example from Russell & Norvig, p. 252)
 %     DP(1).clauses = [-1,2,3,4];
 %     DP(2).clauses = [-2];
