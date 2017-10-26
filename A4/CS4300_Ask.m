@@ -18,7 +18,7 @@ function b = CS4300_Ask(KB,sentence)
 % Fall 2017
 %
 b = 0;
-    if isempty(CS4300_RTP(KB,sentence.clauses,1:80))
+    if isempty(CS4300_RTP(KB,sentence,1:80))
        b = 1;
     end
 end

@@ -30,7 +30,7 @@ for vector = sentence
             KB(end+1).clauses= -(64+i);
         end
     else
-        KB(end+1).clauses= vector;
+        KB(end+1).clauses = clause;
     end
 end
 KB_out = KB;

@@ -1,67 +1,200 @@
-function Sip = CS4300_RTP(sentences,thm,vars)
+function [Sip,broken] = CS4300_RTP(sentences,thm,vars)
 % CS4300_RTP - resolution theorem prover
 % On input:
-%     sentences (CNF data structure): array of conjuctive clauses
-%       (i).clauses
-%           each clause is a list of integers (- for negated literal)
-%     thm (CNF data structure): 1 disjunctive clause to be tested
-%     vars (1xn vector): list of variables (positive integers)
+% sentences (CNF data structure): array of conjuctive clauses
+% (i).clauses
+% each clause is a list of integers (- for negated literal)
+% thm (CNF datastructure): a disjunctive clause to be tested
+% vars (1xn vector): list of variables (positive integers)
 % On output:
-%     Sip (CNF data structure): results of resolution
-%        []: proved sentence |- thm
-%        not []: thm does not follow from sentences
-% Method:
-%  Let S1 = S.
-% Let i = 1.
-% LOOP until i = n + 1.
-% Discard members of Si in which a literal and its
-%    complement appear, to obtain Sip.
-% Let Ti be the set of parent clauses in Sip in which Pi or
-%    -Pi appears.
-% Let Ui be the set of resolvent clauses obtained by
-%     resolving (over Pi ) every pair of clauses C U {Pi} and
-%     D U {-Pi} in Ti.
-% Set Si+1 equal to (Sip\Ti) U Ui . (Eliminate Pi ).
-% Let i be increased by 1.
-% ENDLOOP.
-% Output Sn+1.
-% Pit: 1-16
-% Glitter: 17-32
-% Breeze: 33-48
-% Stench: 49-64
-% Wempus 65-80
-% Call:  (example from Russell & Norvig, p. 252)
-%     DP(1).clauses = [-1,2,3,4];
-%     DP(2).clauses = [-2];
-%     DP(3).clauses = [-3];
-%     DP(4).clauses = [1];
-%     thm = [4];
-%     vars = [1,2,3,4];
-%     Sr = CS4300_RTP(DP,thm,vars);
+% Sip (CNF data structure): results of resolution
+% []: proved sentence |- thm
+% not []: thm does not follow from sentences
+% Call: (example from Russell & Norvig, p. 252)
+% DP(1).clauses = [-1,2,3,4];
+% DP(2).clauses = [-2];
+% DP(3).clauses = [-3];
+% DP(4).clauses = [1];
+% thm(1).clauses = [4];
+% vars = [1,2,3,4];
+% Sr = CS4300_RTP(DP,thm,vars);
 % Author:
-%     T. Henderson
-%     UU
-%     Summer 2014
+% <Your name>
+% UU
+% Fall 2017
 %
 
-num_sentences = length(sentences);
-len_thm = length(thm(1).clauses);
-not_thm = -thm(1).clauses;
-for ind = 1:len_thm
-    num_sentences = num_sentences + 1;
-    sentences(num_sentences).clauses = [not_thm(ind)];
-end
+s = tic;
+timelimit = 1.5;
+broken = 0;
 
-n = length(vars);
-Sipn = sentences;
-for i = 1:n
-    Sip = CS4300_elim_L_nL(Sipn);
-    Ti = CS4300_parent_clauses(Sip,vars(i));
-    Ui = CS4300_resolvent_clauses(Ti,vars(i));
-    if CS4300_empty_clause(Ui)
-        Sip = [];
-        return
-    end
-    Sipn = CS4300_update_S(Sip,Ti,Ui);
+CNF = sentences;
+vector = thm(1).clauses;
+for i = 1:length(vector)
+    temp.clauses = -vector(i);
+    CNF = [temp CNF];
 end
-Sip = Sipn;
+Sip = [0 0];
+newSpace = [];
+resolvents = [];
+gate = 0;
+
+
+
+while gate == 0
+    if isempty(newSpace)
+        len = length(CNF);
+        for i = 1:len
+            CNF(i).clauses = sort(CNF(i).clauses);
+        end
+        for  i = 1: len
+            if i < len 
+                for j = (i+1):length(CNF)
+                     current= CS4300_PL_RESOLVE(CNF(i).clauses,CNF(j).clauses);
+                     if isempty(current)
+                        Sip =[];
+                        return;
+                     end
+                     if current ~= -100
+                         if isempty(current)
+                             Sip =[];
+                             return 
+                         else
+                             add = 1;
+                             current = sort(current);
+                             lenCur = length(current);
+                             if isempty(resolvents)
+                                 resolvents(end+1).clauses = sort(current);
+                             else
+                                 for n =1:length(resolvents)
+                                     if length(resolvents(n).clauses) == lenCur
+                                         if isequal(current,resolvents(n).clauses)
+                                             add = 0;
+                                         end
+                                     end
+                                 end
+                                 if add
+                                     resolvents(end+1).clauses = sort(current);
+                                 end  
+                             end                            
+                         end
+                     end
+                end
+            end
+        end
+        for i =1: len
+            if isempty(resolvents)
+                return;
+            end
+            for n = resolvents
+                if length(n.clauses) == length(CNF(i).clauses)
+                    if isequal(n.clauses, CNF(i).clauses)
+                        n = [];        
+                    end
+                end
+            end
+        end
+        if isempty(resolvents)
+            return;
+        else
+            newSpace = resolvents;
+            resolvents =[];
+        end
+    else
+        % new-new, new- CNF
+        resolvents = [];
+        len = length(newSpace);
+        for  i = 1: len
+            if toc(s) > timelimit
+                broken = 1;
+                return;
+            end
+            if i < len 
+                for j = (i+1):len
+                     current= CS4300_PL_RESOLVE(newSpace(i).clauses,newSpace(j).clauses);
+                     if isempty(current)
+                        Sip =[];
+                        return;
+                     end
+                     if current ~= -100
+                         if isempty(current)
+                             Sip =[];
+                             return; 
+                         else
+                             add = 1;
+                             current = sort(current);
+                             lenCur = length(current);
+                             if isempty(resolvents)
+                                 resolvents(end+1).clauses = sort(current);
+                             else
+                                 for n =1:length(resolvents)
+                                     if length(resolvents(n).clauses) == lenCur
+                                         if isequal(current,n)
+                                             add = 0;
+                                         end
+                                     end
+                                 end
+                                 if add
+                                     resolvents(end+1).clauses = sort(current);
+                                 end  
+                             end                            
+                         end
+                     end
+                end
+            end
+            for j = 1:length(CNF)
+                 current= CS4300_PL_RESOLVE(newSpace(i).clauses,CNF(j).clauses);
+                 if isempty(current)
+                         Sip =[];
+                         return 
+                 end
+                 if current ~= -100
+                     if isempty(current)
+                         Sip =[];
+                         return 
+                     else
+                         add = 1;
+                         current = sort(current);
+                         lenCur = length(current);
+                         if isempty(resolvents)
+                             resolvents(end+1).clauses = sort(current);
+                         else
+                             for n =1:length(resolvents)
+                                 if length(resolvents(n).clauses) == lenCur
+                                     if isequal(current,resolvents(n).clauses)
+                                         add = 0;
+                                     end
+                                 end
+                             end
+                             if add
+                                 resolvents(end+1).clauses = sort(current);
+                             end  
+                         end                            
+                     end
+                 end
+            end
+        end
+        CNF = [newSpace CNF];
+        lenCNF = length(CNF);
+        for i =1: lenCNF
+            if isempty(resolvents)
+                return;
+            end
+            for n = resolvents
+                if length(n.clauses) == length(CNF(i).clauses)
+                    if isequal(n.clauses, CNF(i).clauses)
+                        n = [];
+                    end
+                end
+            end
+        end
+            disp(6)
+        if isempty(resolvents)
+            return;
+        else
+            newSpace = resolvents;
+            resolvents =[];
+        end 
+    end  
+end
+end
