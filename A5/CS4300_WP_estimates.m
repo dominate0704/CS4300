@@ -36,30 +36,51 @@ function [pits,Wumpus] = CS4300_WP_estimates(breezes,stench,num_trials)
 % Fall 2017
 %
  %initialize pit and wumpus prob arrays to 0
- board = zeors(4,4);
- pits = zeors(4,4);
+ board = zeros(4,4);
+ pits = zeros(4,4);
  Wumpus = zeros(4,4);
  count = 0;
   for t = 1:num_trials
     satisfied = 0;
-    t = 0;
+    n = 0;
     %b = get a board that satisfies the breeze and stench conditions
-    while ~satisfied || t<100
+    while ~satisfied && n <100000
         board = CS4300_gen_board(0.2);
+        n=n+1;
+        satisfied = 1;
+        flag = 1;
         for i = 1:16
              col = mod(i-1,4)+1;
              row = 4 - fix((i-1)/4);
-             agent.x = col;
-             agent.y = 4-row+1;
-             percept = CS4300_get_percept(board,agent,bumped,screamed);
-             satisfied = 1;
-             if percept(2)~= breezes(row,col) || percept(1) ~= stench(row,col)
-                 satisfied = 0;
+            if breezes(row,col) == -1|| stench(row,col) == -1
+                 continue;
+            else
+                 if board(row,col) == 1
+                    board(row,col) = 0;
+                 end
+                 if board(row,col) == 3 ||board(row,col) == 4
+                    flag = 0;
+                    satisfied = 0;
+                 end
              end
         end
-        t = t+1;
+        if flag
+            for i = 1:16
+                 col = mod(i-1,4)+1;
+                 row = 4 - fix((i-1)/4);
+                 if breezes(row,col) == -1|| stench(row,col) == -1
+                     continue;
+                 end
+                 agent.x = col;
+                 agent.y = 4-row+1;
+                 percept = CS4300_get_percept(board,agent,0,0);
+                 if percept(2)~= breezes(row,col) || percept(1) ~= stench(row,col)
+                     satisfied = 0;
+                     break;
+                 end
+             end
+        end
     end
-    
     if satisfied
         %increment count
         count = count+1;
@@ -81,6 +102,9 @@ function [pits,Wumpus] = CS4300_WP_estimates(breezes,stench,num_trials)
   % normalize wumpus prob array using count
   pits = pits/count;
   Wumpus = Wumpus/count;
- 
+  if 0<count && count<num_trials
+      display(count);
+  end
+  
 
 end
